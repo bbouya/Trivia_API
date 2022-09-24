@@ -20,7 +20,6 @@ Completing this trivia app will give you the ability to structure plan, implemen
 
 ## About the Stack
 
-
 We started the full stack application for you. It is designed with some key functional areas:
 
 ### Backend
