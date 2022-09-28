@@ -23,7 +23,6 @@ Completing this trivia app will give you the ability to structure plan, implemen
 ## About the Stack
 
 We started the full stack application for you. It is designed with some key functional areas:
-
 ### Backend
 
 The [backend](./backend/README.md) directory contains a partially completed Flask and SQLAlchemy server. You will work primarily in `__init__.py` to define your endpoints and can reference models.py for DB and SQLAlchemy setup. These are the files you'd want to edit in the backend:
