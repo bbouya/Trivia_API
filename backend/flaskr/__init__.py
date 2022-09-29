@@ -1,4 +1,8 @@
+from ast import Return
+from crypt import methods
+import json
 import os
+from uuid import RESERVED_FUTURE
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -8,6 +12,16 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def question_pagination(request, selec):
+    page = request.args.get('page', 1 , type = int)
+    start = (page-1)* QUESTIONS_PER_PAGE
+    end= start + QUESTIONS_PER_PAGE
+
+    questions = [question.format() for question in selec]
+    current_quest = questions[start: end]
+    return current_quest
+
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -16,18 +30,36 @@ def create_app(test_config=None):
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
-    
+    # set up cors Allow '*' for origins
+    CORS(app,resources={'/':{'origins': '*'}})
 
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
-
+    def after_request(response):
+        response.headers.add(
+            'Access-Control-Allow-Headers','Content-Type,Authorization,true')
+        response.headers.add(
+            'Access-Control-Allow-Methods','GET,PUT,POST,DELETE,OPTIONS')
+        
+        return response
     """
     @TODO:
     Create an endpoint to handle GET requests
     for all available categories.
     """
+    @app.route('/categories', methods=['GET'])
 
+    def retrieve_allcategories():
+        categories = Category.query.all()
+        if len(categories) == 0:
+            abort(404)
+        categories_all = [categorie.format() for categorie in categories]
+
+        return jsonify({
+            'categories': categories_all,
+            'success' : True
+        })
 
     """
     @TODO:
@@ -42,6 +74,22 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions.
     """
 
+    @app.route('/questions'nmethods = ['GET'])
+    def Get_All_Question():
+        allquestion = Question.query.all()
+        questionperpage = question_pagination(request, allquestion)
+        categorys = retrieve_allcategories()
+
+        if len(question_pagination) == 0:
+            abort(404)
+        
+        return jsonify({
+            'success': True,
+            'Total_questions': len(allquestion),
+            'categories': categorys,
+            'questions': questionperpage
+        })
+
     """
     @TODO:
     Create an endpoint to DELETE question using a question ID.
@@ -50,6 +98,20 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
 
+    @app.route('/questions/<question_id>', methods=['DELETE'])
+    def Delete_One_Question(question_id):
+        delete_question = Question.query.filter(Question.id==question_id).one_or_none()
+        if delete_question is None:
+            abort(422)
+        try:
+            delete_question.delete()
+            return jsonify({
+                'success': True,
+                'deleted': question_id,
+                'totalquestions': len(Question.query.all())
+            })
+        except :
+            abort(422)
     """
     @TODO:
     Create an endpoint to POST a new question,
@@ -60,6 +122,7 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
+    app.route('/questions')
 
     """
     @TODO:
