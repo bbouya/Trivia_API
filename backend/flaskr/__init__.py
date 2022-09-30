@@ -2,6 +2,8 @@ from ast import Return
 from crypt import methods
 import json
 import os
+from tkinter import N
+from unicodedata import category
 from uuid import RESERVED_FUTURE
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -122,7 +124,31 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
-    app.route('/questions')
+    app.route('/questions', methods = ['POST'])
+    def add_question():
+        body = request.get_json()
+        question_new = body.get('question', None)
+        response_new = body.get('answer', None)
+        category = body.get('category', None)
+        difficulty = body.get('difficulty', None)
+        searchTerm = body.get('searchTerm', None)
+
+        try:
+            if question_new is None or response_new is None or difficulty is None or category is None:
+                abort(422)
+            else:
+                question = Question(question=question_new, answer=response_new,
+                                difficulty=difficulty,
+                                category=category)
+                question.insert()
+                return jsonify({
+                'success': True,
+                'new_question_id': question.id,
+                'new_question': question.question,
+                'total_questions': len(Question.query.all()),
+            })
+        except:
+            abort(422)
 
     """
     @TODO:
@@ -134,6 +160,23 @@ def create_app(test_config=None):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
+    @app.route('/questions/search', methods=['POST'])
+    def search_question():
+        search = request.args.get('search')
+        selection = Question.query.filter(Question.question.ilike('%{}%'.format(search))).all()
+        search_questions = question_pagination(request, selection)
+        if search is None:
+            abort(404)
+        
+        return jsonify(
+            {
+                'success': True,
+                'questions': list(search_questions),
+                "total_question": len(selection)
+            }
+        )
+
+
 
     """
     @TODO:
@@ -143,6 +186,27 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
+    @app.route('/categories/<int:category_id>/questions')
+    def category_per_question(category_id):
+        category = Category.query.filter_by(id=category_id).one_or_none()
+        if category is not None:
+            question_per_category = Question.query.filter_by(
+                category = str(category_id)).all()
+                
+            if question_per_category is not None:
+                paginated_question = paginated_question(request, question_per_category)
+
+                return jsonify(
+                    {
+                        'success': True,
+                        'questions':paginated_question,
+                        'total_questions': len(question_per_category),
+                        'current_category': category.type
+                    }
+                )
+            abort(404)
+        abort(404)
+
 
     """
     @TODO:
