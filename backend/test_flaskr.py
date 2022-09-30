@@ -1,6 +1,7 @@
 import os
 import unittest
 import json
+from urllib import response
 from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
@@ -33,7 +34,63 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
+    def test_paginated_questions(self):
+        response = self.client().get('/categories')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["total_questions"])
+        self.assertTrue(len(data["categories"]))
+        self.assertTrue(len(data["questions"]))
 
+    # Test request 404
+    def test_bad_request(self):
+        response = self.client().get('/questions?page=1000')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+    
+    # test all categories
+    def test_categories(self):
+        response = self.client().get('/categories')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["categories"])
+
+    def test_categories_not_allowed(self):
+        response = self.client().delete('/categories')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(data["success"], False)
+
+    # Test delete question
+    def test_delete_questions(self):
+        response = self.client().delete('/questions/9')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["success"], True)
+
+    def test_delete_questions_not_found(self):
+        response = self.client().delete('/questions/10000')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "Page not found")
+    
+    # Test create questions : 
+    def test_create_question(self):
+        new_Question = {
+            'question': 'what is your Country?',
+            'answer': 'Tunisia',
+            'difficulty': 2,
+            'category': 1
+        }
+        res = self.client().post('/questions', json=new_Question)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
