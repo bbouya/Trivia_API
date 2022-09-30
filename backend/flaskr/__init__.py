@@ -219,12 +219,51 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
+    @app.route('/quizzes', methods=['POST'])
+    def get_quiz():
+
+    
+        try:
+                
+            data = request.json
+            category_id = data["quiz_category"]["id"]
+            previous_questions_id = data["previous_questions"]
+
+            if category_id != 0:
+                questions_left_in_category = Question.query.filter(
+                    Question.category == category_id).filter(
+                        Question.id.notin_(previous_questions_id)).all()
+            else:
+                questions_left_in_category = Question.query.filter(
+                    Question.id.notin_(previous_questions_id)).all()
+
+            question = random.choice(questions_left_in_category).format() if len(
+                questions_left_in_category) else False
+
+            return jsonify({"question" : question})
+        except Exception:
+                abort(422)
 
     """
     @TODO:
     Create error handlers for all expected errors
     including 404 and 422.
     """
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+        "success":False,
+        "error":404,
+        "message": "resource not found"
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+        "success":False,
+        "error":422,
+        "message": "unprocessable"
+        }), 422
 
     return app
 
