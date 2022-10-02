@@ -76,7 +76,7 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions.
     """
 
-    @app.route('/questions'nmethods = ['GET'])
+    @app.route('/questions',methods = ['GET'])
     def Get_All_Question():
         allquestion = Question.query.all()
         questionperpage = question_pagination(request, allquestion)

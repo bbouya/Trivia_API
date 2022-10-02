@@ -92,6 +92,76 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
 
+# ---------------------------------------#
+# test search question
+# ---------------------------------------#
+    def test_search_question(self):
+        response = self.client().post('questions/search',
+                                 json={"searchTerm": "what"})
+        data = json.loads(response.data)
+
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+
+    def test_search_not_found(self):
+        search = {
+            'searchTerm': 'blah blah blah',
+        }
+        res = self.client().post('/search', json=search)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Page not found')
+
+# ---------------------------------------#
+# test questions category
+# ---------------------------------------#
+    def test_questions_per_category(self):
+        response = self.client().get('/categories/1/questions')
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertNotEqual(len(data['questions']), 0)
+        self.assertEqual(data['current_category'], 'Science')
+
+    def test_questions_per_category_not_found(self):
+        res = self.client().get('/categories/100/questions')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
+# ---------------------------------------#
+# test quiz games
+# ---------------------------------------#
+    def test_quiz(self):
+        quiz_test = {
+            'previous_questions': [13],
+            'quiz_category': {
+                'type': 'Geography',
+                'id': '3'
+            }
+        }
+        response = self.client().post('/quizzes',
+                                 json={'previous_questions': [],
+                                       'quiz_category':
+                                       {'id': '3', 'type': 'Geography'}})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['question']['category'], 3)
+
+    def test_quiz_category_unprocessable(self):
+        res = self.client().post('/quizzes',
+                                 json={
+                                     'previous_questions': []
+                                 })
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Unprocessable resource')
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
