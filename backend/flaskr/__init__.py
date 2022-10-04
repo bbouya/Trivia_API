@@ -127,6 +127,9 @@ def create_app(test_config=None):
     app.route('/questions', methods = ['POST'])
     def add_question():
         body = request.get_json()
+        if not ('question' in body and 'answer' in body and 'difficulty' in body and 'category' in body):
+            abort(422)
+
         question_new = body.get('question', None)
         response_new = body.get('answer', None)
         category = body.get('category', None)
@@ -134,19 +137,15 @@ def create_app(test_config=None):
         searchTerm = body.get('searchTerm', None)
 
         try:
-            if question_new is None or response_new is None or difficulty is None or category is None:
-                abort(422)
-            else:
-                question = Question(question=question_new, answer=response_new,
-                                difficulty=difficulty,
-                                category=category)
-                question.insert()
-                return jsonify({
+            question = Question(question=question_new, answer=response_new,
+                                difficulty=difficulty, category=category)
+            question.insert()
+
+            return jsonify({
                 'success': True,
-                'new_question_id': question.id,
-                'new_question': question.question,
-                'total_questions': len(Question.query.all()),
+                'created': question.id,
             })
+
         except:
             abort(422)
 
@@ -248,7 +247,12 @@ def create_app(test_config=None):
     @TODO:
     Create error handlers for all expected errors
     including 404 and 422.
+
     """
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({"success": False, "error": 400, "message": "bad request"}), 400
+        
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -264,6 +268,16 @@ def create_app(test_config=None):
         "error":422,
         "message": "unprocessable"
         }), 422
+    
+    
+    @app.errorhandler(505)
+    def not_found(error):
+        return (
+            jsonify(
+                {"success": False, "error": 505, "message": "Internal server error"}
+            ),
+            405,
+        )
 
     return app
 
