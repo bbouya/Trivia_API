@@ -154,13 +154,13 @@ class TriviaTestCase(unittest.TestCase):
 #-----------------------------------------------------------
 
     def test_play_quiz(self):
-        res = self.client().post('/quizzes', json={
-            'previous_questions': [],
-            'quiz_category': {'type': 'Entertainment', 'id': 5}
-            })
-        data = json.loads(res.data)
+        response = self.client().post('/quizzes', json= {
+            'previous_questions': [], 'quiz_category': {
+                'type': 'Geography', 'id': 15}
+        })
+        data = json.loads(response.data)
 
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(data['success'], True)
 
 #-----------------------------------------------------------

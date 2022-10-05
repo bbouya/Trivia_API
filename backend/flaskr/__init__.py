@@ -223,23 +223,32 @@ def create_app(test_config=None):
 
     
         try:
+            body = request.get_json()
+            prev_questions = body['previous_questions']
+            category = body['quiz_category']['id']
                 
-            data = request.json
-            category_id = data["quiz_category"]["id"]
-            previous_questions_id = data["previous_questions"]
+            if category != 0:
+                questions_rep = Question.query.filter(Question.category == category).order_by(
+                    Question.difficulty).all()
 
-            if category_id != 0:
-                questions_left_in_category = Question.query.filter(
-                    Question.category == category_id).filter(
-                        Question.id.notin_(previous_questions_id)).all()
             else:
-                questions_left_in_category = Question.query.filter(
-                    Question.id.notin_(previous_questions_id)).all()
+                questions_rep = Question.query.order_by(Question.difficulty).all()
+            if len(questions_rep) < 1:
+                abort(404)
+            len_question = len(prev_questions)
+            if len_question < 1:
+                question = questions_rep[0].format()
 
-            question = random.choice(questions_left_in_category).format() if len(
-                questions_left_in_category) else False
+            elif len_question < len(questions_rep):
+                question = questions_rep[len_question].format()
 
-            return jsonify({"question" : question})
+            else:
+                question = None
+
+            return jsonify({
+                'question': question
+            })
+
         except Exception:
                 abort(422)
 
