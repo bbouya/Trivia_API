@@ -159,7 +159,6 @@ class TriviaTestCase(unittest.TestCase):
                 'type': 'Geography', 'id': 15}
         })
         data = json.loads(response.data)
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['success'], True)
 
@@ -167,9 +166,9 @@ class TriviaTestCase(unittest.TestCase):
 #-----------------------------------------------------------
 
     def test_404_play_quiz(self):
-        res = self.client().post('/quizzes', json={'previous_questions': []})
-        data = json.loads(res.data)
-        self.assertEqual(res.status_code, 422)
+        response = self.client().post('/quizzes', json={'previous_questions': []})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 422)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "unprocessable")
 # Make the tests conveniently executable

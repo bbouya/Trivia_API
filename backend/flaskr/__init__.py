@@ -230,18 +230,6 @@ def create_app(test_config=None):
             if category != 0:
                 questions_rep = Question.query.filter(Question.category == category).order_by(
                     Question.difficulty).all()
-
-            else:
-                questions_rep = Question.query.order_by(Question.difficulty).all()
-            if len(questions_rep) < 1:
-                abort(404)
-            len_question = len(prev_questions)
-            if len_question < 1:
-                question = questions_rep[0].format()
-
-            elif len_question < len(questions_rep):
-                question = questions_rep[len_question].format()
-
             else:
                 question = None
 
