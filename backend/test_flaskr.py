@@ -58,11 +58,12 @@ class TriviaTestCase(unittest.TestCase):
 # ~~~test bad request
 # ---------------------------------------#
     def test_get_bad_request(self):
-        response = self.client().get('/questions?page=9999')
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 400)
+        res = self.client().get('/questions/1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'Bad request')
+        self.assertEqual(data['message'], 'method not doesnt exist')
 
 # ---------------------------------------#
 # ~~~test categories
@@ -75,10 +76,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["categories"])
 
     def test_get_categories_not_allowed(self):
-        response = self.client().delete('/categories')
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 405)
-        self.assertEqual(data["success"], False)
+        res = self.client().get('/categories/all')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
 
 # ---------------------------------------#
 # ~~~test delete questions
@@ -103,8 +105,8 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/questions', json={
             'question': 'what is your Country ?',
             'answer': 'Morroco',
-            'difficulty': 2,
-            'category': 1
+            'category': 2,
+            'difficulty': 1
         })
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
@@ -166,10 +168,10 @@ class TriviaTestCase(unittest.TestCase):
 #-----------------------------------------------------------
 
     def test_404_play_quiz(self):
-        response = self.client().post('/quizzes', json={'previous_questions': []})
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(data["success"], False)
+        res = self.client().post('/quizzes', json={})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
         self.assertEqual(data["message"], "unprocessable")
 # Make the tests conveniently executable
 if __name__ == "__main__":
