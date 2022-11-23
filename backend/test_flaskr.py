@@ -28,9 +28,9 @@ class TriviaTestCase(unittest.TestCase):
             )
         setup_db(self.app, self.database_path)
 
-        
+        # for test
         self.new_question = {"question": "What is your favorite subject in school???",
-                             "answer": "new answer", 
+                             "answer": "new answers", 
                              "difficulty": "1", 
                              "category": "1"}
 
@@ -161,7 +161,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response_data['success'], False)
-        self.assertEqual(response_data['message'], '422')
+        self.assertEqual(response_data['message'], '422 quiz')
 
 if __name__ == "__main__":
     unittest.main()
