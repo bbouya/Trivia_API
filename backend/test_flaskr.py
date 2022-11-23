@@ -111,7 +111,7 @@ class TriviaTestCase(unittest.TestCase):
 
     # Test ssearch
     
-    def test_search(self):
+    def test_search_post(self):
         response = self.client().post('/questions', json={'searchTerm': 'invented'})
 
         response_data = json.loads(response.data)
@@ -128,7 +128,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response_data['success'], True)
     
 
-    # test get questions by category
+    # test get questions by categorys
     def test_get_questions_by_categorys(self):
         response = self.client().get('/categories/1/questions')
         response_data = json.loads(response.data)
@@ -137,7 +137,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response_data['current_category'], 'Science')
         self.assertEqual(response_data['success'], True)
 
-    def test_get_404_questions_by_categorys(self):
+    def test_get_questions_by_categorys_404(self):
         response = self.client().get('/categories/1000/questions')
         response_data = json.loads(response.data)
 
