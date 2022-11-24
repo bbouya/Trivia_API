@@ -81,6 +81,7 @@ CREATE SEQUENCE public.questions_id_seq
     NO MAXVALUE
     CACHE 1;
 
+
 ALTER TABLE public.questions_id_seq OWNER TO student;
 
 --
