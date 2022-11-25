@@ -18,8 +18,8 @@ class TriviaTestCase(unittest.TestCase):
         self.database_path = 'postgresql://{}:{}@{}/{}'.format('postgres', '1234','localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
-        self.new_question = {"id": 20, "question": "what you favorite food ?", "answer": "Pickel", "difficulty":1, "category":5}
-        self.new_search = {"searchTerm": "Whats"}
+        self.new_question = {"question": "Hi", "answer": "Are you fine", "difficulty": 1, "category": 5}
+
         # binds the app to the current context
         with self.app.app_context():
             self.db = SQLAlchemy()
@@ -58,13 +58,18 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(response_data["current_category"])
         
 
-    def test_sent_requesting_beyond_valid_page_404(self):
-        res = self.client().get("/questions?page=1000", json={"rating": 1})
-        response_data = json.loads(res.data)
+    # TEST GET QUESTIONS BY CATEGORY
+    def test_get_questions_by_category(self):
+        res = self.client().get("/categories/5/questions")
+        data = json.loads(res.data)
+        self.assertTrue(len(data["questions"]))
+        self.assertTrue(data["total_questions"])
+        self.assertTrue(data["current_category"])
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
 
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(response_data["success"], False)
-        self.assertEqual(response_data["message"], "resource not founds")
+
+
 
 
     # Delete question tests
