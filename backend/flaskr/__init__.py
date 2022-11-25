@@ -83,26 +83,35 @@ def create_app(test_config=None):
         return response
 
     """
-    @TODO:
+    @done:
     Create an endpoint to handle GET requests
     for all available categories.
+    ok
     """
-    def retrieve_allcategories():
-        categories = Category.query.all()
+    @app.route("/categories", methods=['GET'])
+    def retrieve_all_categories():
+
+        categories_list_data = [category.format2() for category in Category.query.all()] # format2 is defined in models.py
+
+        categories = {}
+        for categorys in categories_list_data:
+            categories.update(categorys)
+
         if len(categories) == 0:
             abort(404)
-        categories_all = [categorie.format() for categorie in categories]
+
         return jsonify(
             {
                 "success": True,
-                "categories": categories_all,
-                "total_categories": len(Category.query.all()),
+                "categories": categories,
+                "total_categories": len(Category.query.all())
             }
         )
 
 
+
     """
-    @TODO:
+    @done:
     Create an endpoint to handle GET requests for questions,
     including pagination (every 10 questions).
     This endpoint should return a list of questions,
@@ -112,29 +121,34 @@ def create_app(test_config=None):
     you should see questions and categories generated,
     ten questions per page and pagination at the bottom of the screen for three pages.
     Clicking on the page numbers should update the questions.
+    oki
     """
     
 
     @app.route('/questions',methods = ['GET'])
     def Get_All_Question():
-        allquestion = Question.query.all()
-        questionperpage = allquestion(request, allquestion)
-        categorys = retrieve_allcategories()
+        selections = Question.query.order_by(Question.id).all()
+        question = paginate_questions(request, selections)
+        categories_query = retrieve_all_categories().get_json('categories')
+        categories = categories_query['categories']
+        
 
-
-        if len(questionperpage) == 0:
+        if not len(question):
             abort(404)
-
-        return jsonify({
-            'success': True,
-            'Total_questions': len(allquestion),
-            'categories': categorys,
-            'questions': questionperpage
-        })
+        else:
+            return jsonify(
+                {
+                    "success": True,
+                    "questions": question,
+                    "total_questions": len(selections),
+                    "categories": categories,
+                    "current_category" : list(categories.items())[0][1] # get the value of the first element (in case categorie id 1 doesnt exist)
+                }
+        )
 
 
     """
-    @TODO:
+    @done:
     Create an endpoint to DELETE question using a question ID.
 
     TEST: When you click the trash icon next to a question, the question will be removed.
