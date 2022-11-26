@@ -22,38 +22,38 @@ def paginate_questions(request, selection):
     return current_questions
 # Get current category : 
 def get_current_category(questions_categories, all_categories):
-    cat_sample = 0
+    sample_ex = 0
     count = 0
-    current_category = ""
+    category_current = ""
     for cat in questions_categories:
         if count > 0:
-            if (cat != cat_sample):
-                current_category = "All"
+            if (cat != sample_ex):
+                category_current = "All"
                 break
             else:
-                current_category = all_categories[0].type
+                category_current = all_categories[0].type
         else:
-            cat_sample = cat
+            sample_ex = cat
             count += 1
-    return current_category
+    return category_current
 
-def get_next_question(selection, previous_questions):    
-    new_question = None
-    new_question_bool = False
+def next_question(selection, previous_questions):    
+    new_get_question = None
+    new_get_question_bool = False
 
     for question in selection:
-        new_question_bool = True
+        new_get_question_bool = True
 
         for pq_id in previous_questions:
             if (question["id"] == pq_id):
-                new_question_bool = False
+                new_get_question_bool = False
                 break
 
-        if new_question_bool :
-            new_question = question
+        if new_get_question_bool :
+            new_get_question = question
             break
     
-    return new_question
+    return new_get_question
 
 
 # =============================================================================
@@ -155,21 +155,21 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
-    def delete_question_by_id(question_id):
+    def delete_question_by_id(id_question):
         try:
-            question_id = Question.query.filter(Question.id == question_id).one_or_none()
+            id_of_question = Question.query.filter(Question.id == id_question).one_or_none()
 
-            if question_id is None:
+            if id_of_question is None:
                 abort(404)
 
-            question_id.delete()
+            id_of_question.delete()
             selection = Question.query.order_by(Question.id).all()
             current_questions = paginate_questions(request, selection)
 
             return jsonify(
                 {
                     "success": True,
-                    "deleted": question_id,
+                    "deleted": id_of_question,
                     "questions": current_questions,
                     "total_questions": len(Question.query.all()),
                 }
@@ -192,19 +192,17 @@ def create_app(test_config=None):
     def create_new_question():
         body = request.get_json()
 
-        new_questions = body.get("question", None)
-        new_answers = body.get("answer", None)
-        new_difficultys = body.get("difficulty", None)
-        new_categorys = body.get("category", None)
-
+        new_get_questions = body.get("question", None)
+        new_get_answers = body.get("answer", None)
+        new_get_difficultys = body.get("difficulty", None)
+        new_get_categorys = body.get("category", None)
         try:
             questions = Question(
-                question=new_questions, 
-                answer=new_answers, 
-                difficulty=new_difficultys, 
-                category=new_categorys
+                question=  new_get_questions, 
+                answer=    new_get_answers, 
+                difficulty=new_get_difficultys, 
+                category=  new_get_categorys
                 )
-
             questions.insert()
 
             selections = Question.query.order_by(Question.id).all()
@@ -235,23 +233,23 @@ def create_app(test_config=None):
     
 
     @app.route("/questions/search", methods=["POST"])
-    def search_questions():        
+    def search_question():        
         body = request.get_json()
 
-        search_terms = body.get("searchTerm", None).lower()
+        search_term = body.get("searchTerm", None).lower()
 
         totalQuestion = 0
         found_question = []
         all_categorie = Category.query.order_by(Category.id).all()
-        questions_categorie = []
+        categorie_question = []
 
         for one_question in Question.query.order_by(Question.id).all():
-            if (one_question.question.lower().find(search_terms) != -1):
+            if (one_question.question.lower().find(search_term) != -1):
                 totalQuestion += 1
                 found_question.append(one_question.format())
-                questions_categorie.append(one_question.category)
+                categorie_question.append(one_question.category)
 
-        current_category = get_current_category(questions_categorie, all_categorie)
+        current_category = get_current_category(categorie_question, all_categorie)
         
         return jsonify(
                 {
@@ -270,21 +268,21 @@ def create_app(test_config=None):
     category to be shown.
     """
     @app.route("/categories/<int:category_id>/questions")
-    def retrieve_category_questions(category_id):
-        selections = Question.query.filter_by(category = category_id).order_by(Question.id).all()
-        current_question = paginate_questions(request, selections)
+    def retrieve_category_by_id_questions(category_id):
+        selection = Question.query.filter_by(category = category_id).order_by(Question.id).all()
+        question_current = paginate_questions(request, selection)
 
         current_category = Category.query.get(category_id).type
 
-        if len(current_question) == 0:
+        if len(question_current) == 0:
             abort(404)
 
         return jsonify(
             {
                 "success": True,
-                "questions": current_question,
+                "questions": question_current,
                 "current_category": current_category,
-                "total_questions": len(selections),
+                "total_questions": len(selection),
             }
         )
 
@@ -303,17 +301,17 @@ def create_app(test_config=None):
     def get_quizz():        
         body = request.get_json()
 
-        previous_question = body.get("previous_questions", None)
-        quiz_categories = body.get("quiz_category", None)
+        question_previous = body.get("previous_questions", None)
+        quiz_get_categories = body.get("quiz_category", None)
 
-        if quiz_categories["id"] == 0:
-            selection = Question.query.order_by(Question.id).all()
+        if quiz_get_categories["id"] == 0:
+            selections = Question.query.order_by(Question.id).all()
         else:
-            selection = Question.query.filter_by(category = quiz_categories["id"]).order_by(Question.id).all()
+            selections = Question.query.filter_by(category = quiz_get_categories["id"]).order_by(Question.id).all()
 
-        selection = [question.format() for question in selection]
+        selections = [question.format() for question in selections]
 
-        new_question = get_next_question(selection, previous_question)
+        new_question = next_question(selections, question_previous)
         
         
         return jsonify(
