@@ -21,19 +21,19 @@ def paginate_questions(request, selection):
 
     return current_questions
 # Get current category : 
-def get_current_category(questions_categories, all_categories):
+def get_current_category(questions_get_categories, get_all_categories):
     sample_ex = 0
     count = 0
     category_current = ""
-    for cat in questions_categories:
+    for get_cat in questions_get_categories:
         if count > 0:
-            if (cat != sample_ex):
+            if (get_cat != sample_ex):
                 category_current = "All"
                 break
             else:
-                category_current = all_categories[0].type
+                category_current = get_all_categories[0].type
         else:
-            sample_ex = cat
+            sample_ex = get_cat
             count += 1
     return category_current
 
@@ -168,13 +168,12 @@ def create_app(test_config=None):
 
             return jsonify(
                 {
-                    "success": True,
                     "deleted": id_of_question,
                     "questions": current_questions,
+                    "success": True,
                     "total_questions": len(Question.query.all()),
                 }
             )
-
         except:
             abort(422)
 
@@ -190,29 +189,29 @@ def create_app(test_config=None):
     """
     @app.route("/questions", methods=["POST"])
     def create_new_question():
-        body = request.get_json()
+        data = request.get_json()
 
-        new_get_questions = body.get("question", None)
-        new_get_answers = body.get("answer", None)
-        new_get_difficultys = body.get("difficulty", None)
-        new_get_categorys = body.get("category", None)
+        get_questions = data.get("question", None)
+        get_answers = data.get("answer", None)
+        get_difficultys = data.get("difficulty", None)
+        get_categorys = data.get("category", None)
         try:
             questions = Question(
-                question=  new_get_questions, 
-                answer=    new_get_answers, 
-                difficulty=new_get_difficultys, 
-                category=  new_get_categorys
+                question=  get_questions, 
+                answer=    get_answers, 
+                difficulty=get_difficultys, 
+                category=  get_categorys
                 )
             questions.insert()
 
             selections = Question.query.order_by(Question.id).all()
-            current_questions = paginate_questions(request, selections)
+            question_curr = paginate_questions(request, selections)
 
             return jsonify(
                 {
                     "success": True,
                     "created": questions.id,
-                    "questions": current_questions,
+                    "questions": question_curr,
                     "total_questions": len(Question.query.all()),
                 }
             )
@@ -234,29 +233,28 @@ def create_app(test_config=None):
 
     @app.route("/questions/search", methods=["POST"])
     def search_question():        
-        body = request.get_json()
+        data = request.get_json()
+        search_term = data.get("searchTerm", None).lower()
 
-        search_term = body.get("searchTerm", None).lower()
-
-        totalQuestion = 0
-        found_question = []
-        all_categorie = Category.query.order_by(Category.id).all()
+        total_of_Question = 0
+        question_found = []
+        all_of_categorie = Category.query.order_by(Category.id).all()
         categorie_question = []
 
         for one_question in Question.query.order_by(Question.id).all():
             if (one_question.question.lower().find(search_term) != -1):
-                totalQuestion += 1
-                found_question.append(one_question.format())
+                total_of_Question += 1
+                question_found.append(one_question.format())
                 categorie_question.append(one_question.category)
 
-        current_category = get_current_category(categorie_question, all_categorie)
+        current_category = get_current_category(categorie_question, all_of_categorie)
         
         return jsonify(
                 {
+                    "questions": question_found,
                     "success": True,
-                    "questions": found_question,
                     "current_category": current_category,
-                    "total_questions": totalQuestion,
+                    "total_questions": total_of_Question,
                 }
             )
     """
@@ -268,21 +266,21 @@ def create_app(test_config=None):
     category to be shown.
     """
     @app.route("/categories/<int:category_id>/questions")
-    def retrieve_category_by_id_questions(category_id):
-        selection = Question.query.filter_by(category = category_id).order_by(Question.id).all()
-        question_current = paginate_questions(request, selection)
+    def retrieve_category_by_id_questions(categoryid):
+        selection_by_id = Question.query.filter_by(category = categoryid).order_by(Question.id).all()
+        questioncurrent = paginate_questions(request, selection_by_id)
 
-        current_category = Category.query.get(category_id).type
+        current_category = Category.query.get(categoryid).type
 
-        if len(question_current) == 0:
+        if len(questioncurrent) == 0:
             abort(404)
 
         return jsonify(
             {
                 "success": True,
-                "questions": question_current,
+                "questions": questioncurrent,
                 "current_category": current_category,
-                "total_questions": len(selection),
+                "total_questions": len(selection_by_id),
             }
         )
 
@@ -299,10 +297,10 @@ def create_app(test_config=None):
     """
     @app.route("/quizzes", methods=["POST"])
     def get_quizz():        
-        body = request.get_json()
+        data = request.get_json()
 
-        question_previous = body.get("previous_questions", None)
-        quiz_get_categories = body.get("quiz_category", None)
+        questions_previous = data.get("previous_questions", None)
+        quiz_get_categories = data.get("quiz_category", None)
 
         if quiz_get_categories["id"] == 0:
             selections = Question.query.order_by(Question.id).all()
@@ -311,13 +309,13 @@ def create_app(test_config=None):
 
         selections = [question.format() for question in selections]
 
-        new_question = next_question(selections, question_previous)
+        newquestion = next_question(selections, questions_previous)
         
         
         return jsonify(
                 {
                     "success": True,
-                    "question": new_question
+                    "question": newquestion
                 }
             )
 
